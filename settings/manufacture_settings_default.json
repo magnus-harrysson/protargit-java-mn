@@ -1,0 +1,14 @@
+{
+  "flipMotorMotorCurrentLimit": 3000,
+  "flipMotorCalibrationMotorCurrentLimit": 1800,
+  "flipMotorSpeed": 85,
+  "flipMotorCalibrationSpeed": 90,
+  "flipMotorHysteresis": 5,
+  "twistMotorMotorCurrentLimit": 1200,
+  "twistMotorCalibrationMotorCurrentLimit": 1200,
+  "twistMotorSpeed": 85,
+  "twistMotorCalibrationSpeed": 90,
+  "twistMotorHysteresis": 5,
+  "twistMotorAngleOffset": 5,
+  "targetId": 0
+}

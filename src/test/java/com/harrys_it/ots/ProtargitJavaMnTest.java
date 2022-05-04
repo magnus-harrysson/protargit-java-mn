@@ -1,4 +1,4 @@
-package com.example.harrysit.ots;
+package com.harrys_it.ots;
 
 import io.micronaut.runtime.EmbeddedApplication;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;

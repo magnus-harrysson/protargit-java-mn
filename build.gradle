@@ -4,26 +4,29 @@ plugins {
 }
 
 version = "0.1"
-group = "com.example.harrysit.ots"
+group = "com.harrys_it.ots"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    annotationProcessor("io.micronaut:micronaut-http-validation")
-    implementation("io.micronaut:micronaut-http-client")
-    implementation("io.micronaut:micronaut-jackson-databind")
-    implementation("io.micronaut:micronaut-runtime")
-    implementation("jakarta.annotation:jakarta.annotation-api")
-    runtimeOnly("ch.qos.logback:logback-classic")
-    implementation("io.micronaut:micronaut-validation")
+    annotationProcessor 'io.micronaut:micronaut-http-validation'
 
+    implementation 'io.micronaut:micronaut-http-client'
+    implementation 'io.micronaut:micronaut-jackson-databind'
+    implementation 'io.micronaut:micronaut-runtime'
+    implementation 'jakarta.annotation:jakarta.annotation-api'
+    implementation 'io.micronaut:micronaut-validation'
+    implementation 'com.fazecast:jSerialComm:2.7.0'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.7'
+
+    runtimeOnly 'ch.qos.logback:logback-classic'
 }
 
 
 application {
-    mainClass.set("com.example.harrysit.ots.Application")
+    mainClass.set("com.harrys_it.ots.Application")
 }
 java {
     sourceCompatibility = JavaVersion.toVersion("17")
@@ -36,7 +39,7 @@ micronaut {
     testRuntime("junit5")
     processing {
         incremental(true)
-        annotations("com.example.harrysit.ots.*")
+        annotations("com.harrys_it.ots.*")
     }
 }
 

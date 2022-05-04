@@ -1,0 +1,148 @@
+# For more options and information see
+# http://rpf.io/configtxt
+# Some settings may impact device functionality. See link above for details
+
+# uncomment if you get no picture on HDMI for a default "safe" mode
+#hdmi_safe=1
+
+# uncomment this if your display has a black border of unused pixels visible
+# and your display can output without overscan
+disable_overscan=1
+
+# uncomment the following to adjust overscan. Use positive numbers if console
+# goes off screen, and negative if there is too much border
+#overscan_left=16
+#overscan_right=16
+#overscan_top=16
+#overscan_bottom=16
+
+# uncomment to force a console size. By default it will be display's size minus
+# overscan.
+#framebuffer_width=1280
+#framebuffer_height=720
+
+# uncomment if hdmi display is not detected and composite is being output
+#hdmi_force_hotplug=1
+
+# below lines may reduce boot time... not yet tested
+#hdmi_ignore_hotplug=1
+##hdmi_ignore_edid=1
+
+# uncomment to force a specific HDMI mode (this will force VGA)
+#hdmi_group=2
+#hdmi_mode=87
+#hdmi_cvt=800 480 60 6 0 0 0
+##hdmi_cvt=1280 800 60 6 0 0 0
+
+# uncomment if more power needed to usb ports
+max_usb_current=1
+
+# uncomment to force a HDMI mode rather than DVI. This can make audio work in
+# DMT (computer monitor) modes
+#hdmi_drive=2
+
+# uncomment to increase signal to HDMI, if you have interference, blanking, or
+# no display
+#config_hdmi_boost=4
+
+# uncomment for composite PAL
+#sdtv_mode=2
+
+#uncomment to overclock the arm. 900 MHz is the default.
+#arm_freq = default 800 max 1200 / MCU
+arm_freq=1200
+#arm_freq_min=300
+#core_freq = default 250 / GPU  KEEP AT 250 ALL TIMES REGARDS TO UART1 OPERATION
+core_freq=250
+core_freq_min=250
+#sdram_freq = default 400 / MEMORY
+sdram_freq=400
+#sdram_freq_min=400
+#over_voltage = default 0 / OVER-VOLT MCU
+over_voltage=1
+
+#force_turbo = default 0 / FORCE TURBO ALL THE TIME IN REGARDS TO UART1 OPERATION
+force_turbo=1
+#initial_turbo = default 20 / SECONDS
+#initial_turbo=15
+
+# splash screen/rainbow screen
+disable_splash=1
+
+# Uncomment some or all of these to enable the optional hardware interfaces
+dtparam=i2c_arm=on
+#dtparam=i2s=on
+dtparam=spi=on
+
+# Uncomment this to enable the lirc-rpi module
+#dtoverlay=lirc-rpi
+
+# Additional overlays and parameters are documented /boot/overlays/README
+
+# Enable audio (loads snd_bcm2835)
+#dtparam=audio=on
+dtoverlay=hifiberry-dac
+dtoverlay=i2s-mmap
+
+# Disable potential Bluetooth chip in order to use both UARTs
+dtoverlay=pi3-disable-bt
+
+# Uuart 0 and 1 specifics
+enable_uart=1
+
+dtparam=uart0=on
+dtparam=uart1=on
+
+# Uart0 / pl011 / ttyAMA0
+dtoverlay=uart0,txd0_pin=14,rxd0_pin=15,pin_func=4
+
+# Uart1 / miniUart / ttyS0
+dtoverlay=uart1,txd1_pin=32,rxd1_pin=33
+
+# Uart switch BT (low) or GPS (high) on uart1=ttyS0
+gpio=34=op,dl
+# BT nReset low to reset module
+gpio=35=op,dh
+# GPS nReset low to reset module
+gpio=36=op,dl
+# WIFI nReset low to reset module
+gpio=37=op,dh
+# FTDI nReset low to reset FT230XQ circuit / PCB Gen4 only
+gpio=38=op,dh
+
+# EFM32 nReset low to reset mcu
+gpio=13=op,dh
+# EFM32 Bootloader invoke
+gpio=17=op,dl
+
+# DAC Mute low to un-mute / PCB Gen4 only
+gpio=41=op,dh
+
+# RTC Pulse-Per-Second / PCB Gen4 only
+gpio=4=ip,pu
+
+# Panel button with LED controlled by /sys/class/leds/led0
+# Button pull-up and goes low when pressed
+gpio=5=ip,pu
+
+# Panel LEDs / PCB Gen4 only
+# Green active high
+gpio=42=op,dl
+# Red active high
+gpio=43=op,dl
+
+# Aux outputs using MosFets active high
+# Out_1
+gpio=22=op,dl
+# Out_2
+gpio=23=op,dl
+# Out_3
+gpio=24=op,dl
+# Out_4
+gpio=25=op,dl
+
+
+boot_delay=0
+
+gpu_mem=192
+start_x=0

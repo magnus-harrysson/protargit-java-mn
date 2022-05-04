@@ -1,0 +1,14 @@
+{
+  "flipMovementShowTime": 0,
+  "flipMovementHideTime": 5000,
+  "flipMovementRuns": 0,
+  "flipMovementHideAngle": 0,
+  "flipMovementShowAngle": 90,
+  "flipMovementSpeed": 90,
+  "twistMovementShowTime": 0,
+  "twistMovementHideTime": 5000,
+  "twistMovementRuns": 0,
+  "twistMovementHideAngle": 90,
+  "twistMovementShowAngle": 0,
+  "twistMovementSpeed": 85
+}

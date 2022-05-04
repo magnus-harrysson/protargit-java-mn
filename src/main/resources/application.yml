@@ -1,7 +1,30 @@
 micronaut:
   application:
     name: protargitJavaMn
+  server:
+    port: 8092
 netty:
   default:
     allocator:
       max-order: 3
+
+start:
+  services: true
+  socket: true
+  websocket: true
+  serial:
+    usb: true
+    bluetooth: true
+
+socket:
+  port: 50000
+  websocket:
+    url: ws://localhost:8080/proxy
+
+logger:
+  levels:
+    com.harrys_it.ots: DEBUG
+# For debug loggning set flag --logging.level.com.harrys_it.ots=DEBUG when running .jar file
+# logging.level.web = OFF
+
+

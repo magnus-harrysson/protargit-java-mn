@@ -1,5 +1,7 @@
 ## Micronaut 3.4.3 Documentation
 
+- start app: $./gradlew run
+
 - [User Guide](https://docs.micronaut.io/3.4.3/guide/index.html)
 - [API Reference](https://docs.micronaut.io/3.4.3/api/index.html)
 - [Configuration Reference](https://docs.micronaut.io/3.4.3/guide/configurationreference.html)

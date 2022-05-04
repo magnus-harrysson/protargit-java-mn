@@ -1,0 +1,7 @@
+micronaut:
+  application:
+    name: protargitJavaMn
+netty:
+  default:
+    allocator:
+      max-order: 3

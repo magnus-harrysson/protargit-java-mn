@@ -13,10 +13,10 @@ public class ButtonLedService {
     private ButtonLedState state = ButtonLedState.OFF;
     private static final Logger log = LoggerFactory.getLogger(ButtonLedService.class);
 
-    public ButtonLedService(OsService osService, @Value("${start.services:true}") boolean startService){
+    public ButtonLedService(OsService osService, @Value("${hardware.services.enable}") boolean startService){
         this.osService = osService;
         if(startService){
-            log.debug("{}", ButtonLedService.class.getName() + " Started");
+            log.debug("Started");
             run();
         }
     }

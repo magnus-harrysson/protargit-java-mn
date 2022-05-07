@@ -18,13 +18,13 @@ public class InitService {
 	private static final Logger log = LoggerFactory.getLogger(InitService.class);
 
 	public InitService(OsService osService, ButtonLedService buttonLedService, McuService mcuService,
-					   MechanicalService mechanicalService, @Value("${start.services:true}") boolean startService) {
+					   MechanicalService mechanicalService, @Value("${hardware.services.enable}") boolean startService) {
 		this.osService = osService;
 		this.buttonLedService = buttonLedService;
 		this.mcuService = mcuService;
 		this.mechanicalService = mechanicalService;
 		if(startService) {
-			log.debug("{}", InitService.class.getName() + " Started");
+			log.debug("Started");
 			run();
 		}
 	}

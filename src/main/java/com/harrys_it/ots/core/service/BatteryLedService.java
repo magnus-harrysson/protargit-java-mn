@@ -18,11 +18,11 @@ public class BatteryLedService {
 
     private static final Logger log = LoggerFactory.getLogger(BatteryLedService.class);
 
-    public BatteryLedService(OsService osService, McuService mcuService, @Value("${start.services:true}") boolean startService){
+    public BatteryLedService(OsService osService, McuService mcuService, @Value("${hardware.services.enable}") boolean startService){
         this.osService = osService;
         this.mcuService = mcuService;
         if(startService) {
-            log.debug("{}", BatteryLedService.class.getName() + " Started");
+            log.debug("Started");
             run();
         }
     }

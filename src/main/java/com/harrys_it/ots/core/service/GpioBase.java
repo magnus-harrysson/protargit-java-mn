@@ -1,7 +1,6 @@
 package com.harrys_it.ots.core.service;
 
 import com.harrys_it.ots.core.model.Os;
-import io.micronaut.context.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,12 +12,12 @@ public abstract class GpioBase {
     private final Os gpioHigh;
     private static final Logger log = LoggerFactory.getLogger(GpioBase.class);
 
-    protected GpioBase(OsService osService, Os gpioLow, Os gpioHigh, @Value("${start.services:true}") boolean startService) {
+    protected GpioBase(OsService osService, Os gpioLow, Os gpioHigh, boolean startService) {
         this.osService = osService;
         this.gpioLow = gpioLow;
         this.gpioHigh = gpioHigh;
         if(startService) {
-            log.debug("{}", ButtonService.class.getName() + " Started");
+            log.debug("Started");
             run();
         }
     }

@@ -48,7 +48,7 @@ public class UsbSerialResource extends SerialConnection implements PropertyChang
         this.pcbFacade = pcbFacade;
     }
 
-    @Value("${start.serial.usb}")
+    @Value("${serial.usb.enable}")
     private void run(boolean startSerialUsb) {
         LOGGER.debug("{}", startSerialUsb);
         if(startSerialUsb) {
@@ -86,22 +86,13 @@ public class UsbSerialResource extends SerialConnection implements PropertyChang
 
     private void fromClient(String fullString, String cmd, String data) {
         switch (cmd) {
-            case "gpio20":
+            case "gpio20" -> {
                 osFacade.resetPinsToLow();
                 returnResponseNormal("50,ACK;");
-                break;
-            case "gpio22":
-            case "gpio23":
-            case "gpio24":
-            case "gpio25":
-                gpioCommand(cmd, data);
-                break;
-            case "audio":
-                audioCommand(data);
-                break;
-            default:
-                otherCommand(fullString, cmd, data);
-                break;
+            }
+            case "gpio22", "gpio23", "gpio24", "gpio25" -> gpioCommand(cmd, data);
+            case "audio" -> audioCommand(data);
+            default -> otherCommand(fullString, cmd, data);
         }
     }
 
@@ -126,18 +117,13 @@ public class UsbSerialResource extends SerialConnection implements PropertyChang
     }
 
     private Integer getPin(int parseInt) {
-        switch (parseInt) {
-            case 22:
-                return 4;
-            case 23:
-                return 3;
-            case 24:
-                return 2;
-            case 25:
-                return 1;
-            default:
-                return null;
-        }
+        return switch (parseInt) {
+            case 22 -> 4;
+            case 23 -> 3;
+            case 24 -> 2;
+            case 25 -> 1;
+            default -> null;
+        };
     }
 
     private void audioCommand(String data) {

@@ -7,24 +7,26 @@ import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 @Singleton
 public class ButtonService {
 	private final ModeService modeService;
 	private final OsService osService;
 	private final SettingService settingService;
 
-	private volatile TargetMode state = TargetMode.STOP;
+	private final AtomicReference<TargetMode> state = new AtomicReference<>(TargetMode.STOP);
 	private volatile boolean changeState = false;
 
 	private static final Logger log = LoggerFactory.getLogger(ButtonService.class);
 
 	public ButtonService(ModeService modeService, OsService osService, SettingService settingService,
-						 @Value("${start.services:true}") boolean startService){
+						 @Value("${hardware.services.enable}") boolean startService){
 		this.modeService = modeService;
 		this.osService = osService;
 		this.settingService = settingService;
 		if(startService) {
-			log.debug("{}", ButtonService.class.getName() + " Started");
+			log.debug("Started");
 			run();
 		}
 	}
@@ -36,7 +38,7 @@ public class ButtonService {
 				buttonState();
 				if (changeState) {
 					changeState = false;
-					switch (state) {
+					switch (state.get()) {
 						case HOME -> modeService.setMode(TargetMode.HOME);
 						case FLIP_AUTO -> modeService.setMode(TargetMode.FLIP_AUTO);
 						case TWIST_AUTO -> modeService.setMode(TargetMode.TWIST_AUTO);
@@ -81,17 +83,11 @@ public class ButtonService {
 	}
 
 	private void nextState() {
-		switch (state) {
-			case STOP:
-			case HOME:
-				this.state = TargetMode.FLIP_AUTO;
-				break;
-			case FLIP_AUTO:
-				this.state = TargetMode.TWIST_AUTO;
-				break;
-			case TWIST_AUTO:
-				this.state = TargetMode.HOME;
-				break;
+		switch (state.get()) {
+			case STOP, HOME -> state.set(TargetMode.FLIP_AUTO);
+			case FLIP_AUTO -> state.set(TargetMode.TWIST_AUTO);
+			case TWIST_AUTO -> state.set(TargetMode.HOME);
+			default -> state.set(TargetMode.STOP);
 		}
 		changeState = true;
 	}

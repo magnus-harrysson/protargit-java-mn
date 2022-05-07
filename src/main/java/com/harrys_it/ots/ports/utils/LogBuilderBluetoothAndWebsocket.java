@@ -31,7 +31,7 @@ public class LogBuilderBluetoothAndWebsocket {
         return sb.toString();
     }
 
-    public static StringBuilder appendSerial(String type, byte[] data) {
+    private static StringBuilder appendSerial(String type, byte[] data) {
         StringBuilder sb = new StringBuilder();
         sb.append(type).append(" Serial-part:{ ");
         sb.append(Byte.toUnsignedInt(data[0])).append(",");

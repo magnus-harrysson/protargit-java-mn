@@ -21,24 +21,23 @@ import org.slf4j.LoggerFactory;
 import java.beans.PropertyChangeEvent;
 import java.util.Arrays;
 
-import static com.harrys_it.ots.ports.utils.LogBuilderBluetoothAndWebsocket.buildLogIn;
 import static com.harrys_it.ots.ports.utils.LogBuilderBluetoothAndWebsocket.buildLogOut;
 
 @Singleton
-public class BluetoothAndWebsocketProtocol {
+public class BluetoothAndWebsocketKonverter {
     private final PcbFacade pcbFacade;
     private final GpioFacade gpioFacade;
     private final ResourceMapper mapper;
     private final SettingService settingService;
     private final TargetStatusFacade targetStatusFacade;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BluetoothAndWebsocketProtocol.class);
+    private static final Logger log = LoggerFactory.getLogger(BluetoothAndWebsocketKonverter.class);
 
-    public BluetoothAndWebsocketProtocol(PcbFacade pcbFacade,
-                                         GpioFacade gpioFacade,
-                                         ResourceMapper mapper,
-                                         SettingService settingService,
-                                         TargetStatusFacade targetStatusFacade) {
+    public BluetoothAndWebsocketKonverter(PcbFacade pcbFacade,
+                                          GpioFacade gpioFacade,
+                                          ResourceMapper mapper,
+                                          SettingService settingService,
+                                          TargetStatusFacade targetStatusFacade) {
         this.pcbFacade = pcbFacade;
         this.gpioFacade = gpioFacade;
         this.mapper = mapper;
@@ -46,13 +45,9 @@ public class BluetoothAndWebsocketProtocol {
         this.targetStatusFacade = targetStatusFacade;
     }
 
-    public byte[] handleDataFromMaster(byte[] in, String resourceName) {
+    public byte[] handleDataFromMaster(byte[] in) {
         if(isPacketNotForThisTargetId(in)) {
             return new byte[]{};
-        }
-
-        if(LOGGER.isDebugEnabled()) {
-            LOGGER.debug(buildLogIn(in, resourceName));
         }
 
         var data = Arrays.copyOfRange(in, 4, in.length);
@@ -61,33 +56,26 @@ public class BluetoothAndWebsocketProtocol {
         byte responseCode =  RESPONSE.OK.getValue();
         byte[] responseData = new byte[]{ inCommand.getValue(), 0x00, RESPONSE_DATA.ACK.getValue() };
         switch (inCommand) {
-            case MODE_STOP:
-                pcbFacade.startMode(TargetMode.STOP);
-                break;
-            case MODE_HOME:
-                pcbFacade.startMode(TargetMode.HOME);
-                break;
-
-            case GPIO:
+            case MODE_STOP -> pcbFacade.startMode(TargetMode.STOP);
+            case MODE_HOME -> pcbFacade.startMode(TargetMode.HOME);
+            case GPIO -> {
                 byte pin = data[1];
                 byte mode = data[2];
                 byte timeMSB = data[3];
                 byte timeLSB = data[4];
                 gpio(pin, mode, timeMSB, timeLSB);
-                break;
-
-            case MCU:
+            }
+            case MCU -> {
                 var mcuCmd = McuCommand.fromInt(Byte.toUnsignedInt(data[1]));
                 var mcuData = mapper.convertTwoBytesToOneInt(data[2], data[3]);
                 var resData = mcuCommand(new McuEvent(mcuCmd, mcuData));
                 responseData[1] = resData[0];
                 responseData[2] = resData[1];
-                break;
-
-            default:
+            }
+            default -> {
                 responseCode = RESPONSE.ERROR.getValue();
                 responseData[2] = RESPONSE_DATA.INCORRECT_IN_COMMAND.getValue();
-                break;
+            }
         }
 
         return buildResponse(responseCode, responseData);
@@ -144,8 +132,6 @@ public class BluetoothAndWebsocketProtocol {
                 responseCode = RESPONSE.TARGET_INFO.getValue();
                 data = mapper.convertTargetStatusBroadcastMessageToBytes(targetInfo);
             }
-            default -> {
-            }
         }
         return responseCode != null && data.length > 0 ? buildResponse(responseCode, data) : new byte[]{};
     }
@@ -153,8 +139,8 @@ public class BluetoothAndWebsocketProtocol {
     private byte[] buildResponse(byte responseCode, byte[] data) {
         var targetId = (byte) settingService.getManufactureSettings().targetId() & 0xFF;
         byte[] response = mapper.convertToSendFormatForMaster(responseCode, data, (byte) targetId);
-        if(LOGGER.isDebugEnabled()) {
-            LOGGER.debug(buildLogOut(response));
+        if(log.isDebugEnabled()) {
+            log.debug(buildLogOut(response));
         }
         return response;
     }

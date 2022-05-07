@@ -26,14 +26,14 @@ public class ModeService {
                        MechanicalService mechanicalService,
                        BroadcasterService broadcasterService,
                        ButtonLedService buttonLedService,
-                       @Value("${start.services:true}") boolean startService){
+                       @Value("${hardware.services.enable}") boolean startService){
         this.osService = osService;
         this.mcuService = mcuService;
         this.mechanicalService = mechanicalService;
         this.broadcasterService = broadcasterService;
         this.buttonLedService = buttonLedService;
         if(startService) {
-            log.debug("{}", ModeService.class.getName() + " Started");
+            log.debug("Started");
             run();
         }
     }

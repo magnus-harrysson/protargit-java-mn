@@ -24,36 +24,37 @@ import java.time.format.DateTimeFormatter;
 
 @Singleton
 public class SocketResource implements PropertyChangeListener {
-
-	private final BroadcasterService broadcasterService;
 	private final PcbFacade pcbFacade;
 	private final OsFacade osFacade;
 	private final GpioFacade gpioFacade;
-
 	private ServerSocket serverSocket = null;
 	private Socket socket = null;
 	private BufferedReader input;
 	private PrintWriter output;
-
-	@Value("${socket.port}")
-	private int port;
 	private volatile boolean clientAlive;
 	private volatile boolean clientConnected;
 	private volatile boolean waitingForConnection;
 	private Thread isClientAliveThread;
 	private Thread sendAndReceiveThread;
+	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss:SSS");
 
 	private static final String NOT_VALID_EXEC_COMMAND = "NOT_VALID_EXEC_COMMAND;";
-	private static final Logger LOGGER = LoggerFactory.getLogger(SocketResource.class);
+	private static final Logger log = LoggerFactory.getLogger(SocketResource.class);
 
 	public SocketResource(BroadcasterService broadcasterService,
                           PcbFacade pcbFacade,
                           OsFacade osFacade,
-                          GpioFacade gpioFacade){
-		this.broadcasterService = broadcasterService;
+                          GpioFacade gpioFacade,
+						  @Value("${socket.enable}") boolean startService,
+						  @Value("${socket.port}") int port){
 		this.pcbFacade = pcbFacade;
 		this.osFacade = osFacade;
 		this.gpioFacade = gpioFacade;
+		if(startService) {
+			log.debug("Started");
+			broadcasterService.addPropertyChangeListener(this);
+			run(port);
+		}
 	}
 
 	public boolean isClientAlive() {
@@ -68,29 +69,23 @@ public class SocketResource implements PropertyChangeListener {
 		return waitingForConnection;
 	}
 
-	@Value("${start.socket}")
-	private void run(boolean startSocket) {
-		LOGGER.debug("{}", startSocket);
-		if(startSocket) {
-			broadcasterService.addPropertyChangeListener(this);
-			new Thread(() -> {
-				while (true) {
-					try {
-						connectToSocket(port);
-						listenForHeartbeatsThread();
-						listenForIncomingStringThread();
-						joinAllThreads();
-						LOGGER.debug("Client disconnected from server / Connection lost");
-						cleanUpSocketAndInOutput();
-					} catch (IOException e) {
-						cleanUpSocketAndInOutput();
-						LOGGER.debug("startListeningForClient(): ", e);
-					}
+
+	private void run(int port) {
+		new Thread(() -> {
+			while (true) {
+				try {
+					connectToSocket(port);
+					listenForHeartbeatsThread();
+					listenForIncomingStringThread();
+					joinAllThreads();
+					log.debug("Client disconnected from server / Connection lost");
+					cleanUpSocketAndInOutput();
+				} catch (IOException e) {
+					cleanUpSocketAndInOutput();
+					log.debug("startListeningForClient(): ", e);
 				}
-			}).start();
-		} else {
-			LOGGER.debug("The socket connection is set to false in application.properties with key=start.socket");
-		}
+			}
+		}).start();
 	}
 
 	public void connectToSocket(int inPort) throws IOException {
@@ -98,10 +93,10 @@ public class SocketResource implements PropertyChangeListener {
 		serverSocket.setReuseAddress(true);
 		clientConnected = false;
 
-		LOGGER.debug("Waiting for client to connect on port: {}", inPort);
+		log.debug("Waiting for client to connect on port: {}", inPort);
 		waitingForConnection = true;
 		socket = serverSocket.accept();
-		LOGGER.debug("Client Connected");
+		log.debug("Client Connected");
 		clientConnected = true;
 
 		input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -117,7 +112,7 @@ public class SocketResource implements PropertyChangeListener {
 					try {
 						socket.close();
 					} catch (IOException e) {
-						LOGGER.debug("checkIfClientIsStillConnected: socket could´t close", e);
+						log.debug("checkIfClientIsStillConnected: socket could´t close", e);
 					}
 				}
 			}
@@ -132,18 +127,18 @@ public class SocketResource implements PropertyChangeListener {
 				try {
 					inputString = input.readLine();
 				} catch (IOException e1) {
-					LOGGER.debug("sendReceiveToClient(): interrupt()");
+					log.debug("sendReceiveToClient(): interrupt()");
 					clientConnected = false;
 					isClientAliveThread.interrupt();
 					return;
 				}
 
-				LOGGER.debug("From client: {}", inputString);
+				log.debug("From client: {}", inputString);
 				new Thread(() -> {
 					try {
 						incomingCommand(inputString);
 					} catch (InterruptedException e2) {
-						LOGGER.debug("From client exception", e2);
+						log.debug("From client exception", e2);
 						Thread.currentThread().interrupt();
 					}
 				}).start();
@@ -157,7 +152,7 @@ public class SocketResource implements PropertyChangeListener {
 			Integer[] cmdAndData = McuUtils.convertStringToCmdIntAndDataInt(inputString);
 			Integer cmd = cmdAndData[0];
 			Integer data = cmdAndData[1];
-			LOGGER.debug("mcuCommand: cmd, data: {}, {}", cmd, data);
+			log.debug("mcuCommand: cmd, data: {}, {}", cmd, data);
 			if(cmd!=null && data!=null) {
 				var res = sendToMcuController(cmd, data);
 				output.println(res);
@@ -202,7 +197,7 @@ public class SocketResource implements PropertyChangeListener {
 			format = command.substring(command.length() - 4, command.length() - 1);
 			filename = command.substring(7, command.length() - 1);
 		} catch (IndexOutOfBoundsException e) {
-			LOGGER.debug("Invalid format or filename", e);
+			log.debug("Invalid format or filename", e);
 			return "NACK;";
 		}
 		if (format.equals("wav")) {
@@ -260,8 +255,7 @@ public class SocketResource implements PropertyChangeListener {
 	}
 
 	private String getCurrentTime() {
-		var timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss:SSS");
-		return timeFormat.format(LocalDateTime.now());
+		return TIME_FORMATTER.format(LocalDateTime.now());
 	}
 
 	private boolean readBroadcastValue(PropertyChangeEvent evt) {
@@ -277,7 +271,7 @@ public class SocketResource implements PropertyChangeListener {
 		} catch (InterruptedException e) {
 			clientConnected = false;
 			clientAlive = false;
-			LOGGER.debug("Interrupted in the 'heart beat' thread");
+			log.debug("Interrupted in the 'heart beat' thread");
 			Thread.currentThread().interrupt();
 		}
 	}
@@ -305,9 +299,9 @@ public class SocketResource implements PropertyChangeListener {
 			if(sendAndReceiveThread!=null) {
 				sendAndReceiveThread.join();
 			}
-			LOGGER.debug("Connection shutdown or restarted");
+			log.debug("Connection shutdown or restarted");
 		} catch (InterruptedException e) {
-			LOGGER.debug("Fail to restarted connection... threads could not join", e);
+			log.debug("Fail to restarted connection... threads could not join", e);
 			Thread.currentThread().interrupt();
 		}
 	}

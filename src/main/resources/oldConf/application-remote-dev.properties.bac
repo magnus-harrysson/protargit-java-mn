@@ -1,5 +1,5 @@
 ##
-## application.properties will be run as defalut if "Active profiles" is blank/empty in intellij configuration.
+## application.properties.bac will be run as defalut if "Active profiles" is blank/empty in intellij configuration.
 ##
 
 # Run internal tomcat server

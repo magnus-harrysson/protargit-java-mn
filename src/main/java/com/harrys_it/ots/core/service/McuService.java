@@ -32,13 +32,13 @@ public class McuService extends SerialConnection {
 
 	public McuService(BroadcasterService broadcasterService, MechanicalService mechanicalService,
                       SerialProtocolService serialProtocolService, SettingService settingService,
-					  @Value("${start.services:true}") boolean startService) {
+					  @Value("${hardware.services.enable}") boolean startService) {
 		super(SerialProtocols.MCU,"/dev/ttyAMA0", 115200, 8, serialProtocolService);
 		this.broadcasterService = broadcasterService;
 		this.mechanicalService = mechanicalService;
 		this.settingService = settingService;
 		if(startService) {
-			log.debug("{}", McuService.class.getName() + " Started");
+			log.debug("Started");
 			run();
 		}
 	}

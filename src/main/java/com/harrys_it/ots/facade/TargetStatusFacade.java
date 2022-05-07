@@ -7,27 +7,18 @@ import jakarta.inject.Singleton;
 @Singleton
 public class TargetStatusFacade {
 
-    private final Gpio1Service gpio1;
-    private final Gpio2Service gpio2;
-    private final Gpio3Service gpio3;
-    private final Gpio4Service gpio4;
+    private final GpioFacade gpioFacade;
     private final ZonesService zones;
     private final MechanicalService mechanical;
     private final BatteryLedService batteryLed;
     private final SerialProtocolService serialProtocolService;
 
-    public TargetStatusFacade(Gpio1Service gpio1,
-                              Gpio2Service gpio2,
-                              Gpio3Service gpio3,
-                              Gpio4Service gpio4,
+    public TargetStatusFacade(GpioFacade gpioFacade,
                               ZonesService zones,
                               MechanicalService mechanical,
                               BatteryLedService batteryLed,
                               SerialProtocolService serialProtocolService) {
-        this.gpio1 = gpio1;
-        this.gpio2 = gpio2;
-        this.gpio3 = gpio3;
-        this.gpio4 = gpio4;
+        this.gpioFacade = gpioFacade;
         this.zones = zones;
         this.mechanical = mechanical;
         this.batteryLed = batteryLed;
@@ -37,10 +28,10 @@ public class TargetStatusFacade {
     public TargetStatusBroadcastMessage getStatus() {
         return new TargetStatusBroadcastMessage(
             new boolean[]{
-                gpio1.isHigh(),
-                gpio2.isHigh(),
-                gpio3.isHigh(),
-                gpio4.isHigh(),
+                gpioFacade.gpio1().isHigh(),
+                gpioFacade.gpio2().isHigh(),
+                gpioFacade.gpio3().isHigh(),
+                gpioFacade.gpio4().isHigh(),
             },
             zones.isZonesActive(),
             serialProtocolService.isGpsEnable(),

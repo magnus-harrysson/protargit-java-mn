@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 public class McuUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(McuUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(McuUtils.class);
 
     private McuUtils() { /* hide */ }
 
@@ -118,13 +118,13 @@ public class McuUtils {
         try {
             cmd = Integer.parseInt(sbCmd.toString());
         } catch (NumberFormatException e) {
-            LOGGER.debug("Can not parse cmd as number", e);
+            log.debug("Can not parse cmd as number", e);
         }
 
         try {
             data = Integer.parseInt(sbData.toString());
         } catch (NumberFormatException e) {
-            LOGGER.debug("Can not parse data as number", e);
+            log.debug("Can not parse data as number", e);
         }
 
 

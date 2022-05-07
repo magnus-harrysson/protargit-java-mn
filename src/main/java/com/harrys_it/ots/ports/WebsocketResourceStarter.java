@@ -20,23 +20,17 @@ public class WebsocketResourceStarter {
     public WebsocketResourceStarter(BroadcasterService broadcasterService,
                                     BluetoothAndWebsocketKonverter protocol,
                                     @Value("${websocket.enable}") boolean startService,
-                                    @Value("${websocket.url}") String url) throws URISyntaxException {
+                                    @Value("${websocket.url}") String url,
+                                    @Value("${websocket.mock}") boolean mockData) throws URISyntaxException {
         this.broadcasterService = broadcasterService;
         this.protocol = protocol;
         if(startService) {
             log.debug("Started");
             run(new URI(url));
+        }
+        if(mockData) {
             mockData();
         }
-    }
-
-    private void mockData() {
-        new Thread(() -> {
-            while(true) {
-                sleep();
-                broadcasterService.updateValues();
-            }
-        }).start();
     }
 
     private void run(URI uri) {
@@ -53,6 +47,15 @@ public class WebsocketResourceStarter {
                     run(uri);
                     break;
                 }
+            }
+        }).start();
+    }
+
+    private void mockData() {
+        new Thread(() -> {
+            while(true) {
+                sleep();
+                broadcasterService.updateValues();
             }
         }).start();
     }

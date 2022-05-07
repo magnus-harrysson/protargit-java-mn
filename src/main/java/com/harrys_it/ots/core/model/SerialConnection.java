@@ -34,7 +34,6 @@ public abstract class SerialConnection {
         return serialPort.openPort();
     }
 
-    // TODO ta bort eller gör om till en abstract class så att varje class får override:a denna. Sealed class funkar också.
     private void setSoftwareEnable(SerialProtocols protocol){
         if(LOGGER.isDebugEnabled()) {
             LOGGER.debug("{} serialport open: {}", protocol.name(), isSerialPortOpen);
@@ -45,7 +44,7 @@ public abstract class SerialConnection {
                 case SERIAL_USB -> serialProtocolService.setUsbTtyEnable(true);
                 case MCU -> serialProtocolService.setMcuEnable(true);
                 case GPS -> serialProtocolService.setGpsEnable(true);
-                default -> {}
+                default -> { /* do nothing */ }
             }
         }
     }

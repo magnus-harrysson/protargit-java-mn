@@ -9,10 +9,9 @@ import com.harrys_it.ots.core.service.BroadcasterService;
 import com.harrys_it.ots.facade.GpioFacade;
 import com.harrys_it.ots.facade.OsFacade;
 import com.harrys_it.ots.facade.PcbFacade;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.beans.PropertyChangeEvent;
 import java.io.BufferedReader;
@@ -25,30 +24,21 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+
+@MicronautTest
 class SocketResourceTest {
     private static SocketResource socketResource;
     private static SocketClient socketClient;
-
-    @Mock
-    private static BroadcasterService broadcasterService;
-//    @Mock
-//    private OsFacade osFacade;
-//    @Mock
-//    private GpioFacade gpioFacade;
-//    @Mock
-//    private PcbFacade pcbFacade;
-
     private static final int PORT = 51234;
 
     @BeforeAll
     static void setup() throws IOException {
         socketClient = new SocketClient();
         new Thread(() -> {
-            socketResource = new SocketResource(broadcasterService, mock(PcbFacade.class), mock(OsFacade.class), mock(GpioFacade.class));
+            socketResource = new SocketResource(mock(BroadcasterService.class), mock(PcbFacade.class), mock(OsFacade.class), mock(GpioFacade.class), true, 51111);
             try {
                 socketResource.connectToSocket(PORT);
             } catch (IOException e) {

@@ -2,15 +2,14 @@ package com.harrys_it.ots.core.service;
 
 import com.harrys_it.ots.core.model.settings.ManufactureSettings;
 import com.harrys_it.ots.core.model.settings.UserSettings;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 
-@ExtendWith(MockitoExtension.class)
+@MicronautTest
 class SettingServiceTest {
 
     private SettingService settingService;

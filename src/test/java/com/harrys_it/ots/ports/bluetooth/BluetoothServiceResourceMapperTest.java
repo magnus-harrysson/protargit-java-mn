@@ -79,7 +79,7 @@ class BluetoothServiceResourceMapperTest {
                 ProtocolContract.RESPONSE.OK.getValue(),
                 (byte)0xFD, // Data MSB
                 (byte)0xE6, // Data LSB
-                (byte)0x01  // BluetoothTargetId
+                (byte)0x01  // TargetId
         };
         byte actualTargetId = (byte) 0x06;
 

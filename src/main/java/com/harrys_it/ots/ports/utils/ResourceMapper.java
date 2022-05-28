@@ -67,36 +67,39 @@ public class ResourceMapper {
     }
 
     public byte[] convertTargetStatusBroadcastMessageToBytes(TargetStatusBroadcastMessage targetStatusBroadcastMessage) {
-        var resTargetInfo = new byte[9];
+        var resTargetInfo = new byte[10];
 
-        // byte 0 - gpio's, zones- and gps active.
-        if(targetStatusBroadcastMessage.gpioHigh()[0]) { resTargetInfo[0] += (0x01 & 0xFF); } // 0000 000x
-        if(targetStatusBroadcastMessage.gpioHigh()[1]) { resTargetInfo[0] += (0x02 & 0xFF); } // 0000 00x0
-        if(targetStatusBroadcastMessage.gpioHigh()[2]) { resTargetInfo[0] += (0x04 & 0xFF); } // 0000 0x00
-        if(targetStatusBroadcastMessage.gpioHigh()[3]) { resTargetInfo[0] += (0x08 & 0xFF); } // 0000 x000
-        if(targetStatusBroadcastMessage.zonesActive()) { resTargetInfo[0] += (0x10 & 0xFF); }  // 000x 0000
-        if(targetStatusBroadcastMessage.gpsEnable()) { resTargetInfo[0] += (0x20 & 0xFF); } // 00x0 0000
+        // byte 0 - Response type.
+        resTargetInfo[0] = ProtocolContract.RESPONSE_TYPE.TARGET_INFO.getValue();
+
+        // byte 1 - gpio's, zones- and gps active.
+        if(targetStatusBroadcastMessage.gpioHigh()[0]) { resTargetInfo[1] += (0x01 & 0xFF); } // 0000 000x
+        if(targetStatusBroadcastMessage.gpioHigh()[1]) { resTargetInfo[1] += (0x02 & 0xFF); } // 0000 00x0
+        if(targetStatusBroadcastMessage.gpioHigh()[2]) { resTargetInfo[1] += (0x04 & 0xFF); } // 0000 0x00
+        if(targetStatusBroadcastMessage.gpioHigh()[3]) { resTargetInfo[1] += (0x08 & 0xFF); } // 0000 x000
+        if(targetStatusBroadcastMessage.zonesActive()) { resTargetInfo[1] += (0x10 & 0xFF); }  // 000x 0000
+        if(targetStatusBroadcastMessage.gpsEnable()) { resTargetInfo[1] += (0x20 & 0xFF); } // 00x0 0000
         // Space for two more bit. 0x00 0000 (0x40 & 0xFF) and x000 0000 (0x80 & 0xFF)
 
-        // byte 1 & 2 - voltage
+        // byte 2 & 3 - voltage
         byte[] voltageAsBytes = convertPositiveIntToTwoBytes(targetStatusBroadcastMessage.voltage());
-        resTargetInfo[1] = voltageAsBytes[0];
-        resTargetInfo[2] = voltageAsBytes[1];
+        resTargetInfo[2] = voltageAsBytes[0];
+        resTargetInfo[3] = voltageAsBytes[1];
 
-        // byte 3 - twist speed
-        resTargetInfo[3] = (byte) (targetStatusBroadcastMessage.twistMotorSpeed() & 0xFF);
+        // byte 4 - twist speed
+        resTargetInfo[4] = (byte) (targetStatusBroadcastMessage.twistMotorSpeed() & 0xFF);
 
-        // byte 4 & 5 - twist current angle
+        // byte 5 & 6 - twist current angle
         byte[] twistCurrentAngleAsBytes = convertPositiveIntToTwoBytes(targetStatusBroadcastMessage.twistMotorCurrentAngle());
-        resTargetInfo[4] = twistCurrentAngleAsBytes[0];
-        resTargetInfo[5] = twistCurrentAngleAsBytes[1];
+        resTargetInfo[5] = twistCurrentAngleAsBytes[0];
+        resTargetInfo[6] = twistCurrentAngleAsBytes[1];
 
-        // byte 6 - flip speed
-        resTargetInfo[6] = (byte) (targetStatusBroadcastMessage.flipMotorSpeed() & 0xFF);
+        // byte 7 - flip speed
+        resTargetInfo[7] = (byte) (targetStatusBroadcastMessage.flipMotorSpeed() & 0xFF);
 
-        // byte 7 - flip current angle
+        // byte 8 - flip current angle
         var flipAngle = (byte) (targetStatusBroadcastMessage.flipMotorCurrentAngle() & 0xFF);
-        resTargetInfo[7] = flipAngle >= 0 ? flipAngle : 0;
+        resTargetInfo[8] = flipAngle >= 0 ? flipAngle : 0;
         return resTargetInfo;
     }
 }

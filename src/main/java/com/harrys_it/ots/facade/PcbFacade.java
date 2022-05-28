@@ -2,7 +2,7 @@ package com.harrys_it.ots.facade;
 
 import com.harrys_it.ots.core.model.TargetMode;
 import com.harrys_it.ots.core.model.mcu.McuCommand;
-import com.harrys_it.ots.core.model.mcu.McuErrorResponse;
+import com.harrys_it.ots.core.model.mcu.McuError;
 import com.harrys_it.ots.core.model.mcu.McuEvent;
 import com.harrys_it.ots.core.service.McuService;
 import com.harrys_it.ots.core.service.ModeService;
@@ -28,7 +28,7 @@ public class PcbFacade {
 
     public Integer sendToMcu(McuEvent mcuEvent) {
         if(mcuEvent.getCmd().isProtect()) {
-            return McuErrorResponse.MCU_EVENT_PROTECTED.getValue();
+            return McuError.MCU_EVENT_PROTECTED.getValue();
         } else if(mcuEvent.getCmd().getValue() == McuCommand.HIT_ZONES.getValue()) {
             return zonesService.setActive(mcuEvent) ? 1 : 0;
         } else {

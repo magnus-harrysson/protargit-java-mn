@@ -1,5 +1,7 @@
 package com.harrys_it.ots.ports.utils;
 
+import com.harrys_it.ots.core.model.mcu.McuCommand;
+import com.harrys_it.ots.core.model.mcu.McuError;
 import com.harrys_it.ots.core.model.settings.ManufactureSettings;
 import com.harrys_it.ots.core.service.SettingService;
 import com.harrys_it.ots.facade.GpioFacade;
@@ -34,6 +36,16 @@ class BluetoothAndWebsocketKonverterTest {
     private BluetoothAndWebsocketKonverter konverter;
 
     private static final byte ZERO = (byte) 0x00;
+    private static final byte ANY_VALUE = (byte) 0x00;
+    private static final ManufactureSettings SETTINGS = new ManufactureSettings(
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,0,
+            0,0,0, 2);
 
     @BeforeEach
     void setUp() {
@@ -41,49 +53,198 @@ class BluetoothAndWebsocketKonverterTest {
     }
 
     @Test
-    void handleDataFromMaster() {
-        var inKonverter = new byte[]{
-                ProtocolContract.SERIAL.RECEIVE.getValue(),
-                ProtocolContract.SERIAL.DATA_LENGTH.getValue(),
-                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue(),
-                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue(),
-                ProtocolContract.IN_COMMAND.MCU.getValue(),
-                0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02};
-        var settings = new ManufactureSettings(
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,0,
-                0,0,0, 2);
-        var inPcbFacade = new byte[]{
-                (byte) 0xff,(byte) 0xff};
+    void handleDataFromMaster_MODE_STOP() {
+        var in = new byte[]{
+                ProtocolContract.IN_COMMAND.MODE_STOP.getValue(),
+                ANY_VALUE,
+                ANY_VALUE,
+                (byte) SETTINGS.targetId() };
+
+        when(settingService.getManufactureSettings()).thenReturn(SETTINGS);
+
         var expected = new byte[]{
                 ProtocolContract.SERIAL.SEND.getValue(),
                 ProtocolContract.SERIAL.DATA_LENGTH.getValue(),
                 ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue(),
                 ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue(),
+                ProtocolContract.RESPONSE_TYPE.RESPONSE.getValue(),
+                ProtocolContract.IN_COMMAND.MODE_STOP.getValue(),
+                ProtocolContract.RESPONSE_STATE.OK.getValue(),
+                ANY_VALUE,
+                ANY_VALUE,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                (byte) 0x02 };
 
-                (byte) 0xAA,
-                (byte) 0x07,
-                (byte) 0xFF,
-                (byte) 0xFF,
-                ZERO,
-                ZERO,
-                ZERO,
-                ZERO,
-                ZERO,
-                ZERO,
-                (byte) 0x02
-        };
+        var actual = konverter.handleDataFromMaster(in);
 
-        when(mapper.convertPositiveIntToTwoBytes(any())).thenReturn(inPcbFacade);
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void handleDataFromMaster_MODE_HOME() {
+        var in = new byte[]{
+                ProtocolContract.IN_COMMAND.MODE_HOME.getValue(),
+                ANY_VALUE,
+                ANY_VALUE,
+                (byte) SETTINGS.targetId() };
+
+        when(settingService.getManufactureSettings()).thenReturn(SETTINGS);
+
+        var expected = new byte[]{
+                ProtocolContract.SERIAL.SEND.getValue(),
+                ProtocolContract.SERIAL.DATA_LENGTH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue(),
+                ProtocolContract.RESPONSE_TYPE.RESPONSE.getValue(),
+                ProtocolContract.IN_COMMAND.MODE_HOME.getValue(),
+                ProtocolContract.RESPONSE_STATE.OK.getValue(),
+                ANY_VALUE,
+                ANY_VALUE,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                (byte) 0x02 };
+
+        var actual = konverter.handleDataFromMaster(in);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void handleDataFromMaster_MODE_FLIP_AUTO() {
+        var in = new byte[]{
+                ProtocolContract.IN_COMMAND.MODE_FLIP_AUTO.getValue(),
+                ANY_VALUE,
+                ANY_VALUE,
+                (byte) SETTINGS.targetId() };
+
+        when(settingService.getManufactureSettings()).thenReturn(SETTINGS);
+
+        var expected = new byte[]{
+                ProtocolContract.SERIAL.SEND.getValue(),
+                ProtocolContract.SERIAL.DATA_LENGTH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue(),
+                ProtocolContract.RESPONSE_TYPE.RESPONSE.getValue(),
+                ProtocolContract.IN_COMMAND.MODE_FLIP_AUTO.getValue(),
+                ProtocolContract.RESPONSE_STATE.OK.getValue(),
+                ANY_VALUE,
+                ANY_VALUE,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                (byte) 0x02 };
+
+        var actual = konverter.handleDataFromMaster(in);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void handleDataFromMaster_MODE_TWIST_AUTO() {
+        var in = new byte[]{
+                ProtocolContract.IN_COMMAND.MODE_TWIST_AUTO.getValue(),
+                ANY_VALUE,
+                ANY_VALUE,
+                (byte) SETTINGS.targetId() };
+
+        when(settingService.getManufactureSettings()).thenReturn(SETTINGS);
+
+        var expected = new byte[]{
+                ProtocolContract.SERIAL.SEND.getValue(),
+                ProtocolContract.SERIAL.DATA_LENGTH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue(),
+                ProtocolContract.RESPONSE_TYPE.RESPONSE.getValue(),
+                ProtocolContract.IN_COMMAND.MODE_TWIST_AUTO.getValue(),
+                ProtocolContract.RESPONSE_STATE.OK.getValue(),
+                ANY_VALUE,
+                ANY_VALUE,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                (byte) 0x02 };
+
+        var actual = konverter.handleDataFromMaster(in);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void handleDataFromMaster_MCU_PING_OK() {
+        var in = new byte[]{
+                ProtocolContract.IN_COMMAND.MCU.getValue(),
+                (byte) McuCommand.PING.getValue(),
+                ANY_VALUE,
+                (byte) SETTINGS.targetId() };
+        var pcbResponse = new byte[]{ (byte) 0xFF,(byte) 0xEF };
+        var expected = new byte[]{
+                ProtocolContract.SERIAL.SEND.getValue(),
+                ProtocolContract.SERIAL.DATA_LENGTH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue(),
+                ProtocolContract.RESPONSE_TYPE.RESPONSE.getValue(),
+                ProtocolContract.IN_COMMAND.MCU.getValue(),
+                ProtocolContract.RESPONSE_STATE.OK.getValue(),
+                (byte) 0xFF, // DATA
+                (byte) 0xEF, // DATA
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                (byte) 0x02 };
+
+        when(settingService.getManufactureSettings()).thenReturn(SETTINGS);
+        when(mapper.convertPositiveIntToTwoBytes(any())).thenReturn(pcbResponse);
         when(pcbFacade.sendToMcu(any())).thenReturn(65535);
-        when(settingService.getManufactureSettings()).thenReturn(settings);
 
-        var actual = konverter.handleDataFromMaster(inKonverter);
+        var actual = konverter.handleDataFromMaster(in);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void handleDataFromMaster_MCU_PING_ERROR_SERIAL_CLOSE() {
+        var in = new byte[]{
+                ProtocolContract.IN_COMMAND.MCU.getValue(),
+                (byte) McuCommand.PING.getValue(),
+                ANY_VALUE,
+                (byte) SETTINGS.targetId() };
+        var pcbResponse = new byte[]{ (byte) 0xFF,(byte) 0x9C };
+
+        when(settingService.getManufactureSettings()).thenReturn(SETTINGS);
+        when(mapper.convertPositiveIntToTwoBytes(any())).thenReturn(pcbResponse);
+        when(pcbFacade.sendToMcu(any())).thenReturn(McuError.SERIAL_CLOSED.getValue());
+
+        var expected = new byte[]{
+                ProtocolContract.SERIAL.SEND.getValue(),
+                ProtocolContract.SERIAL.DATA_LENGTH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue(),
+                ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue(),
+                ProtocolContract.RESPONSE_TYPE.RESPONSE.getValue(),
+                ProtocolContract.IN_COMMAND.MCU.getValue(),
+                ProtocolContract.RESPONSE_STATE.ERROR.getValue(),
+                (byte) 0xFF, // DATA
+                (byte) 0x9C, // DATA
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                ZERO,
+                (byte) 0x02 };
+
+        var actual = konverter.handleDataFromMaster(in);
 
         assertThat(actual).isEqualTo(expected);
     }

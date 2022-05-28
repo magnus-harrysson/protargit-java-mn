@@ -25,19 +25,10 @@ public class MechanicalService {
 	}
 
 	protected void setMotorAndMovementAndMode(TargetMode mode) {
-		switch(mode){
-			case STOP:
-			case HOME:
-				this.activeConfig = new Mechanical(null, null, mode);
-				break;
-			case FLIP_AUTO:
-				this.activeConfig = new Mechanical(this.flipMotor, this.flipAutoMovement, mode);
-				break;
-			case TWIST_AUTO:
-				this.activeConfig = new Mechanical(this.twistMotor, this.twistAutoMovement, mode);
-				break;
-			default:
-				break;
+		switch (mode) {
+			case STOP, HOME -> this.activeConfig = new Mechanical(null, null, mode);
+			case FLIP_AUTO -> this.activeConfig = new Mechanical(this.flipMotor, this.flipAutoMovement, mode);
+			case TWIST_AUTO -> this.activeConfig = new Mechanical(this.twistMotor, this.twistAutoMovement, mode);
 		}
 	}
 

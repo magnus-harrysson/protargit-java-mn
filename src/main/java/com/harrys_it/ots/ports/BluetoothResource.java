@@ -8,6 +8,7 @@ import com.harrys_it.ots.core.model.SerialConnection;
 import com.harrys_it.ots.core.model.SerialProtocols;
 import com.harrys_it.ots.core.service.BroadcasterService;
 import com.harrys_it.ots.core.service.SerialProtocolService;
+import com.harrys_it.ots.core.service.SettingService;
 import com.harrys_it.ots.ports.utils.BluetoothAndWebsocketKonverter;
 import com.harrys_it.ots.ports.utils.ProtocolContract;
 import io.micronaut.context.annotation.Value;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 
 import static com.harrys_it.ots.ports.utils.LogBuilderBluetoothAndWebsocket.buildLogIn;
 
@@ -32,16 +34,19 @@ import static com.harrys_it.ots.ports.utils.LogBuilderBluetoothAndWebsocket.buil
 public class BluetoothResource extends SerialConnection implements PropertyChangeListener {
     private final BroadcasterService broadcasterService;
     private final BluetoothAndWebsocketKonverter protocol;
+    private final SettingService settingService;
     private static final Logger log = LoggerFactory.getLogger(BluetoothResource.class);
 
     public BluetoothResource(BroadcasterService broadcasterService,
                              SerialProtocolService serialProtocolService,
                              BluetoothAndWebsocketKonverter protocol,
                              @Value("${serial.bluetooth.enable}") boolean startService,
-                             @Value("${serial.bluetooth.comport}") String port) {
+                             @Value("${serial.bluetooth.comport}") String port,
+                             SettingService settingService) {
         super(SerialProtocols.BLUETOOTH, port, 115200, 8, serialProtocolService);
         this.broadcasterService = broadcasterService;
         this.protocol = protocol;
+        this.settingService = settingService;
         if(startService) {
             log.debug("Started with COMPORT:{}", port);
             run();
@@ -75,12 +80,16 @@ public class BluetoothResource extends SerialConnection implements PropertyChang
             public void serialEvent(SerialPortEvent event) {
                 new Thread(() -> {
                     byte[] in = event.getReceivedData();
-                    var response = protocol.handleDataFromMaster(in);
-                    if(response.length > 0) {
-                        sendToMaster(response);
-                        if(log.isDebugEnabled()) {
-                            log.debug(buildLogIn(response, this.getClass().getName()));
-                        }
+                    if(isPacketNotForThisTargetId(in)) {
+                        return;
+                    }
+
+                    var data = Arrays.copyOfRange(in, 4, in.length);
+                    var response = protocol.handleDataFromMaster(data);
+
+                    sendToMaster(response);
+                    if(log.isDebugEnabled()) {
+                        log.debug(buildLogIn(response, this.getClass().getName()));
                     }
                 }).start();
             }
@@ -97,5 +106,11 @@ public class BluetoothResource extends SerialConnection implements PropertyChang
 
     private void sendToMaster(byte[] data) {
         getSerialPort().writeBytes(data, data.length);
+    }
+
+    private boolean isPacketNotForThisTargetId(byte[] inData) {
+        var targetIdFromSettings = settingService.getManufactureSettings().targetId();
+        var targetIdRemote = inData[inData.length-1];
+        return targetIdFromSettings != targetIdRemote;
     }
 }

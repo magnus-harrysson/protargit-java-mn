@@ -104,7 +104,7 @@ public class McuService extends SerialConnection {
 
 			byte[] res = checkAngleAndHysteresis(mcuEvent);
 			if(res.length == 0) {
-				return McuErrorResponse.NOT_OVER_HYSTERESIS_LIMIT.getValue();
+				return McuError.NOT_OVER_HYSTERESIS_LIMIT.getValue();
 			}
 
 	    	var timer = new Timer();
@@ -126,7 +126,7 @@ public class McuService extends SerialConnection {
 			return waitForMcuResponse(mcuEvent, timer);
 
 		} else {
-    		return McuErrorResponse.SERIAL_CLOSED.getValue();
+    		return McuError.SERIAL_CLOSED.getValue();
     	}
     }
 
@@ -163,13 +163,13 @@ public class McuService extends SerialConnection {
 
 			if(timeOut) {
 				resetTimer(timer);
-				return McuErrorResponse.TIMEOUT.getValue();
+				return McuError.TIMEOUT.getValue();
 			}
 
 			if(newDataOnSerial) {
 				resetTimer(timer);
 				if(dataOnSerial<0) {
-					return McuErrorResponse.SERIAL_ERROR.getValue();
+					return McuError.SERIAL_ERROR.getValue();
 				}
 				setTargetValues(mcuEvent);
 				return dataOnSerial;

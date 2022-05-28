@@ -35,13 +35,13 @@ public class GpioFacade {
         return gpio4;
     }
 
-    public void setGpio(int pin, int time) {
-        switch (pin) {
+    public boolean setGpio(int pin, int time) {
+        return switch (pin) {
             case 1 -> gpio1.set(time);
             case 2 -> gpio2.set(time);
             case 3 -> gpio3.set(time);
             case 4 -> gpio4.set(time);
-            default -> { /* do nothing */ }
-        }
+            default -> false;
+        };
     }
 }

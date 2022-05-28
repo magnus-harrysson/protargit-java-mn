@@ -2,6 +2,7 @@ package com.harrys_it.ots.ports;
 
 import com.harrys_it.ots.core.model.BroadcastEvent;
 import com.harrys_it.ots.core.service.BroadcasterService;
+import com.harrys_it.ots.core.service.SettingService;
 import com.harrys_it.ots.ports.utils.BluetoothAndWebsocketKonverter;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
@@ -12,20 +13,20 @@ import org.slf4j.LoggerFactory;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URI;
+import java.util.Arrays;
 
 import static com.harrys_it.ots.ports.utils.LogBuilderBluetoothAndWebsocket.buildLogIn;
 
 public class WebsocketResource extends WebSocketClient implements PropertyChangeListener {
-
-    private boolean connected = false;
-
     private final BluetoothAndWebsocketKonverter protocol;
-
+    private final SettingService settingService;
+    private boolean connected = false;
     private static final Logger log = LoggerFactory.getLogger(WebsocketResource.class);
 
-    public WebsocketResource(URI uri, BroadcasterService broadcasterService, BluetoothAndWebsocketKonverter protocol) {
+    public WebsocketResource(URI uri, BroadcasterService broadcasterService, BluetoothAndWebsocketKonverter protocol, SettingService settingService) {
         super(uri);
         this.protocol = protocol;
+        this.settingService = settingService;
         broadcasterService.addPropertyChangeListener(this); // Listen to hits
     }
 
@@ -49,9 +50,16 @@ public class WebsocketResource extends WebSocketClient implements PropertyChange
     @Override
     public void onMessage(String message) {
         log.debug("received: {}", message);
-        var response = protocol.handleDataFromMaster(message.getBytes());
-        sendToProxy(response);
+        new Thread(() -> {
+            var in = message.getBytes();
+            if(isPacketNotForThisTargetId(in)) {
+                return;
+            }
 
+            var data = Arrays.copyOfRange(in, 4, in.length);
+            var response = protocol.handleDataFromMaster(data);
+            sendToProxy(response);
+        }).start();
     }
 
     @Override
@@ -76,6 +84,12 @@ public class WebsocketResource extends WebSocketClient implements PropertyChange
     @Override
     public void onError(Exception ex) {
         /* Do nothing */
+    }
+
+    private boolean isPacketNotForThisTargetId(byte[] inData) {
+        var targetIdFromSettings = settingService.getManufactureSettings().targetId();
+        var targetIdRemote = inData[inData.length-1];
+        return targetIdFromSettings != targetIdRemote;
     }
 }
 

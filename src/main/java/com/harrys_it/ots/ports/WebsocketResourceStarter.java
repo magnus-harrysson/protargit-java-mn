@@ -1,6 +1,7 @@
 package com.harrys_it.ots.ports;
 
 import com.harrys_it.ots.core.service.BroadcasterService;
+import com.harrys_it.ots.core.service.SettingService;
 import com.harrys_it.ots.ports.utils.BluetoothAndWebsocketKonverter;
 import io.micronaut.context.annotation.Value;
 import jakarta.inject.Singleton;
@@ -15,15 +16,18 @@ public class WebsocketResourceStarter {
 
     private final BroadcasterService broadcasterService;
     private final BluetoothAndWebsocketKonverter protocol;
+    private final SettingService settingService;
     private static final Logger log = LoggerFactory.getLogger(WebsocketResourceStarter.class);
 
     public WebsocketResourceStarter(BroadcasterService broadcasterService,
                                     BluetoothAndWebsocketKonverter protocol,
                                     @Value("${websocket.enable}") boolean startService,
                                     @Value("${websocket.url}") String url,
-                                    @Value("${websocket.mock}") boolean mockData) throws URISyntaxException {
+                                    @Value("${websocket.mock}") boolean mockData,
+                                    SettingService settingService) throws URISyntaxException {
         this.broadcasterService = broadcasterService;
         this.protocol = protocol;
+        this.settingService = settingService;
         if(startService) {
             log.debug("Started");
             run(new URI(url));
@@ -34,7 +38,7 @@ public class WebsocketResourceStarter {
     }
 
     private void run(URI uri) {
-        WebsocketResource websocketResource = new WebsocketResource(uri, broadcasterService, protocol);
+        WebsocketResource websocketResource = new WebsocketResource(uri, broadcasterService, protocol, settingService);
         websocketResource.connect();
         reconnectIfDown(websocketResource, uri);
     }

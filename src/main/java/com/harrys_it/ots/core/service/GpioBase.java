@@ -72,8 +72,9 @@ public abstract class GpioBase {
      * time<0: Low for "time" in milliseconds
      * @param time in milliseconds
      */
-    public void set(int time) {
+    public boolean set(int time) {
         this.time = time;
+        return true;
     }
 
     public boolean isHigh() {

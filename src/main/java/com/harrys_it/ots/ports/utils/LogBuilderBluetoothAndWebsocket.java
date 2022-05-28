@@ -20,7 +20,7 @@ public class LogBuilderBluetoothAndWebsocket {
         StringBuilder sb = appendSerial("OUT", data);
 
         sb.append("Data-part:{ Response:");
-        sb.append(ProtocolContract.RESPONSE.fromByte(data[4]).name());
+        sb.append(ProtocolContract.RESPONSE_TYPE.fromByte(data[4]).name());
         sb.append(" Data:");
         sb.append(Byte.toUnsignedInt(data[5])).append(",");
         for(int i = 6; i < data.length-1; i++) {

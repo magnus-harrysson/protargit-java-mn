@@ -181,7 +181,7 @@ public class SocketResource implements PropertyChangeListener {
 			String res = executeAudio(inputString);
 			output.println("RESCAudio," + inputString + res);
 		} else {
-			output.println(McuErrorResponse.NOT_VALID);
+			output.println(McuError.NOT_VALID);
 		}
 		output.flush();
 	}

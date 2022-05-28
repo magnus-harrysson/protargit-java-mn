@@ -1,6 +1,6 @@
 package com.harrys_it.ots.core.model.mcu;
 
-public enum McuErrorResponse {
+public enum McuError {
     SERIAL_CLOSED(-100),
     TIMEOUT(-101),
     SERIAL_ERROR(-102),
@@ -10,7 +10,7 @@ public enum McuErrorResponse {
 
     private final Integer value;
 
-    McuErrorResponse(Integer value) {
+    McuError(Integer value) {
         this.value = value;
     }
 

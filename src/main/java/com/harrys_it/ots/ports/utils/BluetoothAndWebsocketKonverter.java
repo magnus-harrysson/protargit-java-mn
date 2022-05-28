@@ -12,14 +12,12 @@ import com.harrys_it.ots.facade.PcbFacade;
 import com.harrys_it.ots.facade.TargetStatusFacade;
 import com.harrys_it.ots.ports.utils.ProtocolContract.IN_COMMAND;
 import com.harrys_it.ots.ports.utils.ProtocolContract.MCU_EVENT;
-import com.harrys_it.ots.ports.utils.ProtocolContract.RESPONSE;
-import com.harrys_it.ots.ports.utils.ProtocolContract.RESPONSE_DATA;
+import com.harrys_it.ots.ports.utils.ProtocolContract.RESPONSE_TYPE;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
-import java.util.Arrays;
 
 import static com.harrys_it.ots.ports.utils.LogBuilderBluetoothAndWebsocket.buildLogOut;
 
@@ -45,116 +43,146 @@ public class BluetoothAndWebsocketKonverter {
         this.targetStatusFacade = targetStatusFacade;
     }
 
-    public byte[] handleDataFromMaster(byte[] in) {
-        if(isPacketNotForThisTargetId(in)) {
-            return new byte[]{};
-        }
+    public byte[] handleDataFromMaster(byte[] data) {
 
-        var data = Arrays.copyOfRange(in, 4, in.length);
         var inCommand = IN_COMMAND.fromByte(data[0]);
 
-        byte responseCode =  RESPONSE.OK.getValue();
-        byte[] responseData = new byte[]{ inCommand.getValue(), 0x00, RESPONSE_DATA.ACK.getValue() };
+        byte[] response = new byte[]{};
         switch (inCommand) {
-            case MODE_STOP -> pcbFacade.startMode(TargetMode.STOP);
-            case MODE_HOME -> pcbFacade.startMode(TargetMode.HOME);
+            case MODE_STOP -> {
+                pcbFacade.startMode(TargetMode.STOP);
+                response = new byte[]{
+                        RESPONSE_TYPE.RESPONSE.getValue(),
+                        inCommand.getValue(),
+                        ProtocolContract.RESPONSE_STATE.OK.getValue()
+                };
+            }
+            case MODE_HOME -> {
+                pcbFacade.startMode(TargetMode.HOME);
+                response = new byte[]{
+                        RESPONSE_TYPE.RESPONSE.getValue(),
+                        inCommand.getValue(),
+                        ProtocolContract.RESPONSE_STATE.OK.getValue()
+                };
+            }
+            case MODE_FLIP_AUTO -> {
+                pcbFacade.startMode(TargetMode.FLIP_AUTO);
+                response = new byte[]{
+                        RESPONSE_TYPE.RESPONSE.getValue(),
+                        inCommand.getValue(),
+                        ProtocolContract.RESPONSE_STATE.OK.getValue()
+                };
+            }
+            case MODE_TWIST_AUTO -> {
+                pcbFacade.startMode(TargetMode.TWIST_AUTO);
+                response = new byte[]{
+                        RESPONSE_TYPE.RESPONSE.getValue(),
+                        inCommand.getValue(),
+                        ProtocolContract.RESPONSE_STATE.OK.getValue()
+                };
+            }
             case GPIO -> {
                 byte pin = data[1];
                 byte mode = data[2];
                 byte timeMSB = data[3];
                 byte timeLSB = data[4];
-                gpio(pin, mode, timeMSB, timeLSB);
+                var res = gpio(pin, mode, timeMSB, timeLSB);
+                if(res) {
+                    // OK
+                } else {
+                    // ERROR - INCORRECT PIN or MODE
+                }
             }
             case MCU -> {
                 var mcuCmd = McuCommand.fromInt(Byte.toUnsignedInt(data[1]));
                 var mcuData = mapper.convertTwoBytesToOneInt(data[2], data[3]);
-                var resData = mcuCommand(new McuEvent(mcuCmd, mcuData));
-                responseData[1] = resData[0];
-                responseData[2] = resData[1];
-            }
-            default -> {
-                responseCode = RESPONSE.ERROR.getValue();
-                responseData[2] = RESPONSE_DATA.INCORRECT_IN_COMMAND.getValue();
+                var mcuEvent = new McuEvent(mcuCmd, mcuData);
+                Integer resFromMcu = pcbFacade.sendToMcu(mcuEvent);
+                var resData = mcuCommand(resFromMcu);
+                if(resFromMcu > 0) {
+                    response = new byte[]{
+                            RESPONSE_TYPE.RESPONSE.getValue(),
+                            inCommand.getValue(),
+                            ProtocolContract.RESPONSE_STATE.OK.getValue(),
+                            resData[0],
+                            resData[1] };
+                } else {
+                    response = new byte[]{
+                            RESPONSE_TYPE.RESPONSE.getValue(),
+                            inCommand.getValue(),
+                            ProtocolContract.RESPONSE_STATE.ERROR.getValue(),
+                            resData[0],
+                            resData[1] };
+                }
+
             }
         }
-
-        return buildResponse(responseCode, responseData);
+        return buildResponse(response);
     }
 
-    private boolean isPacketNotForThisTargetId(byte[] inData) {
-        var targetIdFromSettings = settingService.getManufactureSettings().targetId();
-        var targetIdRemote = inData[inData.length-1];
-        return targetIdFromSettings != targetIdRemote;
-    }
-
-    private void gpio(byte pin, byte mode, byte timeMSB, byte timeLSB) {
+    private boolean gpio(byte pin, byte mode, byte timeMSB, byte timeLSB) {
         var time = mapper.convertTwoBytesToOneInt(timeMSB, timeLSB);
         var gpioPin = Byte.toUnsignedInt(pin);
         if(GpioMode.ON_OFF.getValue() == mode || GpioMode.ON_TIMER.getValue() == mode) {
-            gpioFacade.setGpio(gpioPin, time);
+            return gpioFacade.setGpio(gpioPin, time);
         } else if(GpioMode.OFF_TIMER.getValue() == mode) {
-            gpioFacade.setGpio(gpioPin, (time * -1));
+            return gpioFacade.setGpio(gpioPin, (time * -1));
+        } else {
+            return false;
         }
     }
 
-    private byte[] mcuCommand(McuEvent mcuEvent) {
-        Integer resFromMcu = pcbFacade.sendToMcu(mcuEvent);
-        byte[] resToBytes = mapper.convertPositiveIntToTwoBytes(resFromMcu);
+    private byte[] mcuCommand(Integer value) {
+        byte[] resToBytes = mapper.convertPositiveIntToTwoBytes(value);
         return new byte[]{ resToBytes[0], resToBytes[1] };
     }
 
     public byte[] propChanged(PropertyChangeEvent evt) {
         var event = BroadcastEvent.fromByte(evt.getPropertyName());
-        Byte responseCode = null;
         byte[] data = new byte[]{};
         byte[] hitSplitTime;
         switch (event) {
             case HIT -> {
                 var hit = (McuBroadcastMessage) evt.getNewValue();
-                responseCode = RESPONSE.MCU_EVENT.getValue();
                 hitSplitTime = mapper.convertPositiveIntToTwoBytes(hit.getTime());
-                data = new byte[]{MCU_EVENT.HIT.getValue(), (byte) hit.getCommand(), hitSplitTime[0], hitSplitTime[1]};
+                data = new byte[]{RESPONSE_TYPE.MCU_EVENT.getValue(), MCU_EVENT.HIT.getValue(), (byte) hit.getCommand(), hitSplitTime[0], hitSplitTime[1]};
             }
             case STATIC_HIT -> {
                 var staticHit = (McuBroadcastMessage) evt.getNewValue();
-                responseCode = RESPONSE.MCU_EVENT.getValue();
                 hitSplitTime = mapper.convertPositiveIntToTwoBytes(staticHit.getTime());
-                data = new byte[]{MCU_EVENT.STATIC_HIT.getValue(), (byte) staticHit.getCommand(), hitSplitTime[0], hitSplitTime[1]};
+                data = new byte[]{RESPONSE_TYPE.MCU_EVENT.getValue(), MCU_EVENT.STATIC_HIT.getValue(), (byte) staticHit.getCommand(), hitSplitTime[0], hitSplitTime[1]};
             }
             case OTHER -> {
                 var other = (McuBroadcastMessage) evt.getNewValue();
-                responseCode = RESPONSE.MCU_EVENT.getValue();
                 hitSplitTime = mapper.convertPositiveIntToTwoBytes(other.getTime());
-                data = new byte[]{MCU_EVENT.OTHER.getValue(), (byte) other.getCommand(), hitSplitTime[0], hitSplitTime[1]};
+                data = new byte[]{RESPONSE_TYPE.MCU_EVENT.getValue(), MCU_EVENT.OTHER.getValue(), (byte) other.getCommand(), hitSplitTime[0], hitSplitTime[1]};
             }
             case UPDATE_TARGET_STATUS -> {
                 var targetInfo = targetStatusFacade.getStatus();
-                responseCode = RESPONSE.TARGET_INFO.getValue();
                 data = mapper.convertTargetStatusBroadcastMessageToBytes(targetInfo);
             }
         }
-        return responseCode != null && data.length > 0 ? buildResponse(responseCode, data) : new byte[]{};
+        return buildResponse(data);
     }
 
-    private byte[] buildResponse(byte responseCode, byte[] data) {
+    private byte[] buildResponse(byte[] data) {
         var settings = settingService.getManufactureSettings();
         var targetId = (byte) settings.targetId() & 0xFF;
-        byte[] response = convertToSendFormatForMaster(responseCode, data, (byte) targetId);
+        byte[] response = convertToSendFormatForMaster(data, (byte) targetId);
         if(log.isDebugEnabled()) {
             log.debug(buildLogOut(response));
         }
         return response;
     }
 
-    private byte[] convertToSendFormatForMaster(byte inCommand, byte[] data, byte targetId) {
+    private byte[] convertToSendFormatForMaster(byte[] data, byte targetId) {
         var response = new byte[Byte.toUnsignedInt(ProtocolContract.MAX_PACKET_SIZE)];
         response[0] = ProtocolContract.SERIAL.SEND.getValue();
         response[1] = ProtocolContract.SERIAL.DATA_LENGTH.getValue();
         response[2] = ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue();
         response[3] = ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue();
-        response[4] = inCommand;
 
-        var currentIndex = 5;
+        var currentIndex = 4;
         for(byte b: data) {
             if(currentIndex==13) {
                 response[currentIndex] = b;

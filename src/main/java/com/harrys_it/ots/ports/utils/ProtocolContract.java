@@ -25,6 +25,8 @@ public class ProtocolContract {
     public enum IN_COMMAND {
         MODE_STOP((byte) 0x00),
         MODE_HOME((byte) 0x01),
+        MODE_FLIP_AUTO((byte) 0x02),
+        MODE_TWIST_AUTO((byte) 0x03),
         GPIO((byte) 0x06),
         MCU((byte) 0x07);
 
@@ -47,14 +49,13 @@ public class ProtocolContract {
         }
     }
 
-    public enum RESPONSE {
-         OK((byte) 0xAA),
+    public enum RESPONSE_TYPE {
+         RESPONSE((byte) 0xAA),
          MCU_EVENT((byte) 0xBB),
-         TARGET_INFO((byte) 0xCC),
-         ERROR((byte) 0xEE);
+         TARGET_INFO((byte) 0xCC);
 
         private final byte value;
-        RESPONSE(byte value) {
+        RESPONSE_TYPE(byte value) {
             this.value = value;
         }
 
@@ -62,8 +63,8 @@ public class ProtocolContract {
             return value;
         }
 
-        public static RESPONSE fromByte(byte response) {
-            for (RESPONSE r : RESPONSE.values()) {
+        public static RESPONSE_TYPE fromByte(byte response) {
+            for (RESPONSE_TYPE r : RESPONSE_TYPE.values()) {
                 if (r.value == response) {
                     return r;
                 }
@@ -72,12 +73,12 @@ public class ProtocolContract {
         }
     }
 
-    public enum RESPONSE_DATA {
-        ACK((byte) 0x01),
-        INCORRECT_IN_COMMAND((byte) 0xE0);
+    public enum RESPONSE_STATE {
+        OK((byte) 0x01),
+        ERROR((byte) 0x02);
 
         private final byte value;
-        RESPONSE_DATA(byte value) {
+        RESPONSE_STATE(byte value) {
             this.value = value;
         }
 

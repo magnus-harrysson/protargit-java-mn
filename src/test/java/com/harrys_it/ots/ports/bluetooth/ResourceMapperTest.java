@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BluetoothServiceResourceMapperTest {
+class ResourceMapperTest {
 
     private ResourceMapper mapper;
 
@@ -70,55 +70,6 @@ class BluetoothServiceResourceMapperTest {
         assertEquals(expected[2], actual[2]);
         assertEquals(expected[3], actual[3]);
         assertEquals(expected[4], actual[4]);
-    }
-
-    @Test
-    void testConvertToSendFormatForMaster() {
-        byte actualInCommand = (byte) 0x01;
-        byte[] actualInData = new byte[]{
-                ProtocolContract.RESPONSE.OK.getValue(),
-                (byte)0xFD, // Data MSB
-                (byte)0xE6, // Data LSB
-                (byte)0x01  // TargetId
-        };
-        byte actualTargetId = (byte) 0x06;
-
-        byte[] actual = mapper.convertToSendFormatForMaster(actualInCommand, actualInData, actualTargetId);
-
-        byte expectedSerialCommand = ProtocolContract.SERIAL.SEND.getValue();
-        byte expectedSerialDataLength = ProtocolContract.SERIAL.DATA_LENGTH.getValue();
-        byte expectedAdrMSB = ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue();
-        byte expectedAdrLSB = ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue();
-        byte expectedCommandSentToSlave = ProtocolContract.IN_COMMAND.MODE_HOME.getValue();
-        byte[] expectedResponseData = new byte[]{
-                (byte)0xAA,
-                (byte)0xFD, // MSB
-                (byte)0xE6, // LSB
-                (byte)0x01  // BluetoothTargetId
-        };
-        byte expectedTargetId = (byte) 0x06;
-
-        byte[] expected = new byte[]{
-                expectedSerialCommand,
-                expectedSerialDataLength,
-                expectedAdrMSB,
-                expectedAdrLSB,
-                expectedCommandSentToSlave,
-                expectedResponseData[0],
-                expectedResponseData[1],
-                expectedResponseData[2],
-                expectedResponseData[3],
-                ZERO,
-                ZERO,
-                ZERO,
-                ZERO,
-                ZERO,
-                expectedTargetId
-        };
-
-        for(int i=0; i<actual.length; i++) {
-            assertEquals(expected[i], actual[i]);
-        }
     }
 
     @Test

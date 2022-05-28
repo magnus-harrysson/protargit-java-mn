@@ -4,7 +4,6 @@ public class ProtocolContract {
     private ProtocolContract() { /* hide */ }
 
     public static final byte MAX_PACKET_SIZE = (byte) 0x0F; // 15
-    private static final String EXCEPTION_TEXT = "No constant with value found for:";
 
     public enum SERIAL {
         SEND((byte) 0xF0),
@@ -44,7 +43,7 @@ public class ProtocolContract {
                     return i;
                 }
             }
-            throw new IllegalArgumentException(EXCEPTION_TEXT + inCommand);
+            throw new IllegalArgumentException("Error no IN_COMMAND with value:" + inCommand + " found");
         }
     }
 
@@ -69,7 +68,7 @@ public class ProtocolContract {
                     return r;
                 }
             }
-            throw new IllegalArgumentException(EXCEPTION_TEXT + response);
+            throw new IllegalArgumentException("Error no RESPONSE with value:" + response + " found");
         }
     }
 

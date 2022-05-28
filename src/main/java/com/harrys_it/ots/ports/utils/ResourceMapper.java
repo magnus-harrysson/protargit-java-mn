@@ -48,29 +48,6 @@ public class ResourceMapper {
         return zoneValues;
     }
 
-    public byte[] convertToSendFormatForMaster(byte inCommand, byte[] data, byte targetId) {
-        var response = new byte[Byte.toUnsignedInt(ProtocolContract.MAX_PACKET_SIZE)];
-        response[0] = ProtocolContract.SERIAL.SEND.getValue();
-        response[1] = ProtocolContract.SERIAL.DATA_LENGTH.getValue();
-        response[2] = ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_HIGH.getValue();
-        response[3] = ProtocolContract.SERIAL.BLUETOOTH_SEND_ADDRESS_LOW.getValue();
-        response[4] = inCommand;
-
-        var currentIndex = 5;
-        for(byte b: data) {
-            if(currentIndex==13) {
-                response[currentIndex] = b;
-                break;
-            } else {
-                response[currentIndex++] = b;
-            }
-        }
-
-        response[14] = targetId;
-
-        return response;
-    }
-
     /**
      * Convert positive integer to two bytes
      * @param res Positive integer value between 0-65535

@@ -10,7 +10,6 @@ import com.harrys_it.ots.core.service.SettingService;
 import com.harrys_it.ots.facade.GpioFacade;
 import com.harrys_it.ots.facade.PcbFacade;
 import com.harrys_it.ots.facade.TargetStatusFacade;
-import com.harrys_it.ots.ports.utils.ProtocolContract.IN_COMMAND;
 import com.harrys_it.ots.ports.utils.ProtocolContract.MCU_EVENT;
 import com.harrys_it.ots.ports.utils.ProtocolContract.RESPONSE_TYPE;
 import jakarta.inject.Singleton;
@@ -45,7 +44,7 @@ public class BluetoothAndWebsocketKonverter {
 
     public byte[] handleDataFromMaster(byte[] data) {
 
-        var inCommand = IN_COMMAND.fromByte(data[0]);
+        var inCommand = ProtocolContract.IN_COMMAND.fromByte(data[0]);
 
         byte[] response = new byte[]{};
         switch (inCommand) {
@@ -88,9 +87,17 @@ public class BluetoothAndWebsocketKonverter {
                 byte timeLSB = data[4];
                 var res = gpio(pin, mode, timeMSB, timeLSB);
                 if(res) {
-                    // OK
+                    response = new byte[]{
+                            RESPONSE_TYPE.RESPONSE.getValue(),
+                            inCommand.getValue(),
+                            ProtocolContract.RESPONSE_STATE.OK.getValue()
+                    };
                 } else {
-                    // ERROR - INCORRECT PIN or MODE
+                    response = new byte[]{
+                            RESPONSE_TYPE.RESPONSE.getValue(),
+                            inCommand.getValue(),
+                            ProtocolContract.RESPONSE_STATE.ERROR.getValue()
+                    };
                 }
             }
             case MCU -> {

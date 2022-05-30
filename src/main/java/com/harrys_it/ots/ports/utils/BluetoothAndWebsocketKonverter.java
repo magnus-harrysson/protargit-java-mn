@@ -86,17 +86,27 @@ public class BluetoothAndWebsocketKonverter {
                 byte timeMSB = data[3];
                 byte timeLSB = data[4];
                 var res = gpio(pin, mode, timeMSB, timeLSB);
-                if(res) {
+                if(res == 0) {
                     response = new byte[]{
                             RESPONSE_TYPE.RESPONSE.getValue(),
                             inCommand.getValue(),
                             ProtocolContract.RESPONSE_STATE.OK.getValue()
                     };
-                } else {
+                } else if(res == -1) {
+                    var incorrectPin = (byte) 0x01;
                     response = new byte[]{
                             RESPONSE_TYPE.RESPONSE.getValue(),
                             inCommand.getValue(),
-                            ProtocolContract.RESPONSE_STATE.ERROR.getValue()
+                            ProtocolContract.RESPONSE_STATE.ERROR.getValue(),
+                            incorrectPin
+                    };
+                } else if(res == -2) {
+                    var incorrectMode = (byte) 0x02;
+                    response = new byte[]{
+                            RESPONSE_TYPE.RESPONSE.getValue(),
+                            inCommand.getValue(),
+                            ProtocolContract.RESPONSE_STATE.ERROR.getValue(),
+                            incorrectMode
                     };
                 }
             }
@@ -127,16 +137,22 @@ public class BluetoothAndWebsocketKonverter {
         return buildResponse(response);
     }
 
-    private boolean gpio(byte pin, byte mode, byte timeMSB, byte timeLSB) {
+    private int gpio(byte pin, byte mode, byte timeMSB, byte timeLSB) {
         var time = mapper.convertTwoBytesToOneInt(timeMSB, timeLSB);
         var gpioPin = Byte.toUnsignedInt(pin);
-        if(GpioMode.ON_OFF.getValue() == mode || GpioMode.ON_TIMER.getValue() == mode) {
-            return gpioFacade.setGpio(gpioPin, time);
-        } else if(GpioMode.OFF_TIMER.getValue() == mode) {
-            return gpioFacade.setGpio(gpioPin, (time * -1));
-        } else {
-            return false;
+        if(pin < 0x00 || pin > 0x04) {
+            return -1;
         }
+        if(mode != GpioMode.ON_OFF.getValue() && mode != GpioMode.ON_TIMER.getValue() && mode != GpioMode.OFF_TIMER.getValue()) {
+            return -2;
+        }
+
+        if(GpioMode.ON_OFF.getValue() == mode || GpioMode.ON_TIMER.getValue() == mode) {
+            gpioFacade.setGpio(gpioPin, time);
+        } else {
+            gpioFacade.setGpio(gpioPin, (time * -1));
+        }
+        return 0;
     }
 
     private byte[] mcuCommand(Integer value) {

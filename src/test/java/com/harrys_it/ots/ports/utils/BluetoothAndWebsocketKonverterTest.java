@@ -236,7 +236,6 @@ class BluetoothAndWebsocketKonverterTest {
                 (byte) SETTINGS.targetId() };
 
         when(mapper.convertTwoBytesToOneInt(timeMSB, timeLSB)).thenReturn(10);
-        when(gpioFacade.setGpio(10, 10)).thenReturn(false);
         when(settingService.getManufactureSettings()).thenReturn(SETTINGS);
 
         var expected = new byte[]{
@@ -247,7 +246,7 @@ class BluetoothAndWebsocketKonverterTest {
                 ProtocolContract.RESPONSE_TYPE.RESPONSE.getValue(),
                 ProtocolContract.IN_COMMAND.GPIO.getValue(),
                 ProtocolContract.RESPONSE_STATE.ERROR.getValue(),
-                ZERO,
+                (byte) 0x01,
                 ZERO,
                 ZERO,
                 ZERO,

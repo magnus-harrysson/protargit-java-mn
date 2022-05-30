@@ -28,7 +28,7 @@ public class PcbFacade {
 
     public Integer sendToMcu(McuEvent mcuEvent) {
         if(mcuEvent.getCmd().isProtect()) {
-            return McuError.MCU_EVENT_PROTECTED.getValue();
+            return McuError.MCU_COMMAND_PROTECTED.getValue();
         } else if(mcuEvent.getCmd().getValue() == McuCommand.HIT_ZONES.getValue()) {
             return zonesService.setActive(mcuEvent) ? 1 : 0;
         } else {

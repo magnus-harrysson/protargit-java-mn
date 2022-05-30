@@ -6,7 +6,7 @@ public enum McuError {
     SERIAL_ERROR(-102),
     NOT_VALID(-103),
     NOT_OVER_HYSTERESIS_LIMIT(-104),
-    MCU_EVENT_PROTECTED(-105);
+    MCU_COMMAND_PROTECTED(-105);
 
     private final Integer value;
 
